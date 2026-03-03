@@ -1,12 +1,9 @@
-const CACHE_NAME = 'adhd-trip-planner-v1.0.1';
+const CACHE_NAME = 'adhd-trip-planner-v1.0.2';
 const ASSETS = [
     './',
     './index.html',
     './style.css',
-    './app.js',
-    'https://cdn.tailwindcss.com',
-    'https://unpkg.com/lucide@latest',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+    './app.js'
 ];
 
 // Install Event

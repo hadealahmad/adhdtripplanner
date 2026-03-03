@@ -11,6 +11,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/Planner.svg">
+    <link rel="apple-touch-icon" href="assets/Planner.png">
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -175,15 +182,15 @@
                 <button id="btn-back" onclick="showCatalogue()" class="btn-icon hidden -ml-2">
                     <i data-lucide="arrow-left" class="icon-sm"></i>
                 </button>
+                <img src="assets/Planner.svg" alt="Logo" class="w-8 h-8 rounded-md bg-muted p-1">
                 <div>
                     <div class="flex items-center gap-2 group">
-                        <h1 id="header-title">My Trips</h1>
+                        <h1 id="header-title">ADHD Planner</h1>
                         <button id="btn-edit-title" onclick="editTripName()"
                             class="btn-icon p-1 opacity-0 group-hover:opacity-100">
                             <i data-lucide="pencil" class="icon-xs"></i>
                         </button>
                     </div>
-                    <div id="trip-summary" class="trip-summary"></div>
                 </div>
             </div>
             <div class="flex items-center gap-1">
@@ -219,19 +226,44 @@
                 </div>
             </div>
 
-            <!-- Detail View -->
-            <div id="detail-view" class="hidden">
-                <div id="timeline"></div>
-                <div id="empty-state"
-                    class="hidden flex flex-col items-center justify-center text-center py-12 px-4 mt-8">
-                    <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="map" class="text-muted-foreground icon-sm"></i>
+            <!-- Detail Drawer -->
+            <div id="drawer-overlay" class="drawer-overlay" onclick="showCatalogue()"></div>
+            <div id="trip-drawer" class="drawer">
+                <div class="drawer-handle" onclick="showCatalogue()"></div>
+
+                <div id="drawer-header" class="drawer-header">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 group">
+                                <h2 id="drawer-title" class="text-lg font-bold tracking-tight">Trip Name</h2>
+                                <button onclick="editTripName()"
+                                    class="btn-icon p-1 opacity-0 group-hover:opacity-100 sm:opacity-100">
+                                    <i data-lucide="pencil" class="icon-xs"></i>
+                                </button>
+                            </div>
+                            <div id="drawer-summary" class="trip-summary">Summary</div>
+                        </div>
+                        <button onclick="deleteTrip(appState.activeTripId)" class="btn-icon text-destructive">
+                            <i data-lucide="trash-2" class="icon-sm"></i>
+                        </button>
                     </div>
-                    <h3 class="text-lg font-semibold mb-1">Itinerary is empty</h3>
-                    <p class="text-sm text-muted-foreground mb-6">Start building your journey step by step.</p>
-                    <button onclick="openModal()" class="btn btn-primary shadow-sm transition-all">
-                        <i data-lucide="plus" class="icon-xs mr-2"></i> Add First Step
-                    </button>
+                </div>
+
+                <div class="drawer-content">
+                    <div id="detail-view" class="hidden">
+                        <div id="timeline"></div>
+                        <div id="empty-state"
+                            class="hidden flex flex-col items-center justify-center text-center py-12 px-4 mt-8">
+                            <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="map" class="text-muted-foreground icon-sm"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-1">Itinerary is empty</h3>
+                            <p class="text-sm text-muted-foreground mb-6">Start building your journey step by step.</p>
+                            <button onclick="openModal()" class="btn btn-primary shadow-sm transition-all">
+                                <i data-lucide="plus" class="icon-xs mr-2"></i> Add First Step
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>

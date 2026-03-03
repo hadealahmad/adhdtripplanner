@@ -106,23 +106,27 @@ function showCatalogue() {
     document.getElementById('btn-edit-title').classList.add('hidden');
     document.getElementById('fab-add-trip').classList.remove('hidden');
     document.getElementById('fab-add-step').classList.add('hidden');
-    document.getElementById('header-title').textContent = 'My Trips';
-    document.getElementById('trip-summary').innerHTML = `${appState.trips.length} trip${appState.trips.length !== 1 ? 's' : ''}`;
+
+    // Header reset
+    document.getElementById('header-title').textContent = 'ADHD Planner';
+
+    // Drawer Close
+    document.getElementById('trip-drawer').classList.remove('active');
+    document.getElementById('drawer-overlay').classList.remove('active');
 
     renderCatalogue();
 }
 
 function showTrip(tripId) {
     appState.activeTripId = tripId;
-    document.getElementById('catalogue-view').classList.add('hidden');
     document.getElementById('detail-view').classList.remove('hidden');
-    document.getElementById('btn-back').classList.remove('hidden');
-    document.getElementById('btn-edit-title').classList.remove('hidden');
+    document.getElementById('btn-back').classList.add('hidden');
     document.getElementById('fab-add-trip').classList.add('hidden');
     document.getElementById('fab-add-step').classList.remove('hidden');
 
-    const trip = appState.trips.find(t => t.id === tripId);
-    document.getElementById('header-title').textContent = trip.name;
+    // Drawer Open
+    document.getElementById('trip-drawer').classList.add('active');
+    document.getElementById('drawer-overlay').classList.add('active');
 
     renderTrip();
 }
@@ -177,6 +181,10 @@ function renderTrip() {
     const trip = appState.trips.find(t => t.id === appState.activeTripId);
     if (!trip) return;
 
+    // Update Drawer Header
+    document.getElementById('drawer-title').textContent = trip.name;
+    updateTripSummary(trip.steps);
+
     let steps = [...trip.steps].sort((a, b) => getStepTimings(a).start - getStepTimings(b).start);
 
     const container = document.getElementById('timeline');
@@ -226,40 +234,44 @@ function renderTrip() {
             <div class="timeline-item">
                 ${!isLast ? '<div class="timeline-line"></div>' : ''}
                 <div class="timeline-node">
-                    <i data-lucide="map-pin" class="icon-xs text-muted-foreground"></i>
+                    <div class="w-1.5 h-1.5 rounded-full bg-border"></div>
                 </div>
-                <div class="card p-4 hover:border-muted-foreground/50">
-                    <div class="flex-between items-start mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="mode-icon ${bgMap[step.type]}">
-                                <i data-lucide="${iconMap[step.type]}" class="icon-sm"></i>
+                <div class="card p-3 hover:border-muted-foreground/30 shadow-sm">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="mode-icon ${bgMap[step.type]} !w-8 !h-8 rounded-md shrink-0">
+                                <i data-lucide="${iconMap[step.type]}" class="!w-4 !h-4 text-primary-foreground"></i>
                             </div>
-                            <div>
-                                <h3 class="text-sm font-semibold tracking-tight">
-                                    ${step.type === 'preparation' ? step.from : `${step.from} → ${step.to}`}
-                                </h3>
-                                <p class="mode-label mt-0.5">${step.type}</p>
-                            </div>
+                            <h3 class="text-sm font-semibold tracking-tight leading-tight truncate">
+                                ${step.type === 'preparation' ? step.from : `${step.from} → ${step.to}`}
+                            </h3>
                         </div>
-                        <div class="flex items-center gap-1 -mr-2">
-                            <button onclick="editStep('${step.id}')" class="btn-icon">
-                                <i data-lucide="pencil" class="icon-xs"></i>
+                        <div class="flex items-center gap-0.5 shrink-0 -mr-1">
+                            <button onclick="editStep('${step.id}')" class="btn-icon w-8 h-8 rounded-md hover:bg-muted transition-colors">
+                                <i data-lucide="pencil" class="!w-3.5 !h-3.5 text-muted-foreground"></i>
                             </button>
-                            <button onclick="deleteStep('${step.id}')" class="btn-icon hover-red">
-                                <i data-lucide="trash-2" class="icon-xs"></i>
+                            <button onclick="deleteStep('${step.id}')" class="btn-icon w-8 h-8 rounded-md hover:bg-destructive/10 hover:text-destructive transition-colors">
+                                <i data-lucide="trash-2" class="!w-3.5 !h-3.5"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 text-sm bg-muted/60 p-3 rounded-md border border-border/50">
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Departure</p>
-                            <p class="font-medium">${formatTime(step.time)}</p>
-                            <p class="text-[10px] text-muted-foreground">${formatDate(step.date)}</p>
+                    
+                    <div class="flex items-center flex-wrap gap-x-4 gap-y-2 pt-2 border-t border-border/40">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="clock" class="!w-3 !h-3 text-muted-foreground"></i>
+                            <span class="text-[11px] font-bold text-foreground/90">${formatTime(step.time)}</span>
                         </div>
-                        <div>
-                            <p class="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Duration</p>
-                            <p class="font-medium">${formatDuration(parseInt(step.durHours) * 60 + parseInt(step.durMins))}</p>
-                            <p class="text-[10px] text-muted-foreground">Est. Arrival: ${formatTime(timings.end.toTimeString().slice(0, 5))}</p>
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="calendar" class="!w-3 !h-3 text-muted-foreground"></i>
+                            <span class="text-[11px] text-muted-foreground">${formatDate(step.date)}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="timer" class="!w-3 !h-3 text-muted-foreground"></i>
+                            <span class="text-[11px] text-muted-foreground">${formatDuration(parseInt(step.durHours) * 60 + parseInt(step.durMins))}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 border-l border-border/40 pl-3 ml-auto">
+                            <i data-lucide="check" class="!w-3 !h-3 text-primary"></i>
+                            <span class="text-[11px] font-bold text-foreground">${formatTime(timings.end.toTimeString().slice(0, 5))}</span>
                         </div>
                     </div>
                 </div>
@@ -275,7 +287,7 @@ function renderTrip() {
 }
 
 function updateTripSummary(steps) {
-    const summaryEl = document.getElementById('trip-summary');
+    const summaryEl = document.getElementById('drawer-summary');
     if (steps.length === 0) {
         summaryEl.innerHTML = `<span>No journey scheduled</span>`;
         return;
@@ -327,7 +339,7 @@ function handleTripSubmit(event) {
         if (trip) {
             trip.name = name;
             if (appState.activeTripId === trip.id) {
-                document.getElementById('header-title').textContent = name;
+                document.getElementById('drawer-title').textContent = name;
             }
             saveData();
             renderCatalogue();

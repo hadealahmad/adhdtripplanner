@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trip Planner</title>
+
+    <!-- Meta Tags for Mobile -->
+    <meta name="theme-color" content="#18181b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind CSS (for utility classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Helper Styles to bridge Tailwind and Custom CSS -->
+    <style>
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-xs {
+            width: 0.875rem;
+            height: 0.875rem;
+        }
+
+        .icon-sm {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .btn-icon {
+            p: 0.5rem;
+            color: var(--muted-foreground);
+            border-radius: 0.375rem;
+            transition: background 0.2s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-icon:hover {
+            color: var(--foreground);
+            background-color: var(--muted);
+        }
+
+        .hover-red:hover {
+            color: var(--destructive);
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .mode-icon {
+            padding: 0.375rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg-blue {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .bg-purple {
+            background-color: #f3e8ff;
+            color: #7e22ce;
+        }
+
+        .bg-amber {
+            background-color: #fef3c7;
+            color: #b45309;
+        }
+
+        .bg-emerald {
+            background-color: #d1fae5;
+            color: #047857;
+        }
+
+        .bg-indigo {
+            background-color: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .mode-label {
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted-foreground);
+            margin: 0;
+        }
+
+        .layover-badge {
+            margin: 0.5rem 0 0.5rem 1.125rem;
+            padding: 0.125rem 0.5rem;
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--muted-foreground);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .overlap-badge {
+            margin: 0.5rem 0 0.5rem 1.125rem;
+            padding: 0.125rem 0.5rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 9999px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--destructive);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .insert-btn-container {
+            position: absolute;
+            bottom: -0.75rem;
+            left: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .btn-insert {
+            width: 1.75rem;
+            height: 1.75rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted-foreground);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: -0.125rem;
+        }
+
+        .btn-insert:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="flex items-center gap-3">
+                <button id="btn-back" onclick="showCatalogue()" class="btn-icon hidden -ml-2">
+                    <i data-lucide="arrow-left" class="icon-sm"></i>
+                </button>
+                <div>
+                    <div class="flex items-center gap-2 group">
+                        <h1 id="header-title">My Trips</h1>
+                        <button id="btn-edit-title" onclick="editTripName()"
+                            class="btn-icon p-1 opacity-0 group-hover:opacity-100">
+                            <i data-lucide="pencil" class="icon-xs"></i>
+                        </button>
+                    </div>
+                    <div id="trip-summary" class="trip-summary"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1">
+                <button onclick="document.getElementById('import-file').click()" class="btn-icon" title="Import">
+                    <i data-lucide="upload" class="icon-sm"></i>
+                </button>
+                <button onclick="exportData()" class="btn-icon" title="Export">
+                    <i data-lucide="download" class="icon-sm"></i>
+                </button>
+                <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)">
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main-content">
+            <!-- Catalogue View -->
+            <div id="catalogue-view" class="flex flex-col gap-3">
+                <div id="trip-list" class="flex flex-col gap-3"></div>
+                <div id="empty-catalogue"
+                    class="hidden flex flex-col items-center justify-center text-center py-12 px-4">
+                    <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="compass" class="text-muted-foreground icon-sm"></i>
+                    </div>
+                    <h3 class="text-lg font-medium mb-1">No trips yet</h3>
+                    <p class="text-sm text-muted-foreground mb-4">Create your first trip to start planning.</p>
+                    <button onclick="createNewTrip()" class="btn btn-primary">
+                        <i data-lucide="plus" class="icon-xs mr-2"></i> Create Trip
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detail View -->
+            <div id="detail-view" class="hidden">
+                <div id="timeline"></div>
+                <div id="empty-state" class="hidden flex flex-col items-center justify-center text-center py-12 px-4">
+                    <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="map" class="text-muted-foreground icon-sm"></i>
+                    </div>
+                    <h3 class="text-lg font-medium mb-1">Itinerary is empty</h3>
+                    <button onclick="openModal()" class="btn btn-primary mt-4">
+                        <i data-lucide="plus" class="icon-xs mr-2"></i> Add First Step
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Add Buttons -->
+        <button id="fab-add-trip" onclick="createNewTrip()" class="fab">
+            <i data-lucide="plus" class="icon-sm"></i>
+        </button>
+        <button id="fab-add-step" onclick="openModal()" class="fab hidden">
+            <i data-lucide="plus" class="icon-sm"></i>
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <dialog id="step-modal">
+        <div class="modal-header">
+            <h2 id="modal-title">Add Step</h2>
+            <button onclick="closeModal()" class="btn-icon">
+                <i data-lucide="x" class="icon-sm"></i>
+            </button>
+        </div>
+        <form id="step-form" class="modal-body" onsubmit="saveStep(event)">
+            <input type="hidden" id="step-id">
+
+            <div class="form-group">
+                <label>Transport Mode</label>
+                <div class="grid grid-cols-5 gap-2 mt-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="preparation" class="sr-only peer"
+                            onchange="toggleToField()">
+                        <div
+                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            <i data-lucide="clipboard-check" class="icon-sm mb-1"></i>
+                            <span class="text-[10px] font-medium">Prep</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="bus" class="sr-only peer" checked
+                            onchange="toggleToField()">
+                        <div
+                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            <i data-lucide="bus" class="icon-sm mb-1"></i>
+                            <span class="text-[10px] font-medium">Bus</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="plane" class="sr-only peer" onchange="toggleToField()">
+                        <div
+                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            <i data-lucide="plane" class="icon-sm mb-1"></i>
+                            <span class="text-[10px] font-medium">Flight</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="taxi" class="sr-only peer" onchange="toggleToField()">
+                        <div
+                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            <i data-lucide="car" class="icon-sm mb-1"></i>
+                            <span class="text-[10px] font-medium">Taxi</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="minibus" class="sr-only peer" onchange="toggleToField()">
+                        <div
+                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            <i data-lucide="truck" class="icon-sm mb-1"></i>
+                            <span class="text-[10px] font-medium">Van</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid-2 relative">
+                <div class="form-group">
+                    <label id="label-from">From</label>
+                    <input type="text" id="fromLoc" required placeholder="Where from?">
+                </div>
+                <div id="to-field-container" class="form-group">
+                    <label>To</label>
+                    <input type="text" id="toLoc" required placeholder="Destination">
+                </div>
+                <div id="middle-arrow" class="absolute left-1/2 top-7 -translate-x-1/2 -translate-y-1/2 bg-white px-1">
+                    <i data-lucide="arrow-right" class="icon-xs text-muted"></i>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Departure Date</label>
+                    <input type="date" id="depDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Time</label>
+                    <input type="time" id="depTime" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Trip Duration</label>
+                <div class="grid-2">
+                    <div class="relative">
+                        <input type="number" id="durHours" min="0" required value="1" class="w-full">
+                        <span class="absolute right-2 top-2 text-xs text-muted">hrs</span>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="durMins" min="0" max="59" required value="0" class="w-full">
+                        <span class="absolute right-2 top-2 text-xs text-muted">min</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2 mt-4">
+                <button type="button" onclick="closeModal()" class="btn btn-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Step</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>

@@ -5,12 +5,17 @@ const APP_VERSION = '1.0.1';
 // --- State Management ---
 let appState = {
     activeTripId: null,
-    trips: []
+    trips: [],
+    settings: {
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: '24h'
+    }
 };
 
 // Initialize app
 function init() {
     loadData();
+    applySettingsToUI();
     registerServiceWorker();
     setupEventListeners();
     showCatalogue();
@@ -21,7 +26,9 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
         try {
-            appState.trips = JSON.parse(saved);
+            const parsed = JSON.parse(saved);
+            appState.trips = parsed.trips || [];
+            appState.settings = parsed.settings || { dateFormat: 'DD/MM/YYYY', timeFormat: '24h' };
         } catch (e) {
             console.error("Failed to parse saved data", e);
             appState.trips = getDefaultData();
@@ -34,7 +41,10 @@ function loadData() {
 
 // Save to LocalStorage
 function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState.trips));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        trips: appState.trips,
+        settings: appState.settings
+    }));
 }
 
 function getDefaultData() {
@@ -52,8 +62,26 @@ function getDefaultData() {
 }
 
 // --- Formatters ---
-const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
-const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+function formatDate(dateString) {
+    if (!dateString) return "";
+    const [y, m, d] = dateString.split('-');
+    const format = appState.settings.dateFormat;
+    if (format === 'DD/MM/YYYY') return `${d}/${m}/${y}`;
+    if (format === 'MM/DD/YYYY') return `${m}/${d}/${y}`;
+    return dateString; // YYYY-MM-DD
+}
+
+function formatTime(timeString) {
+    if (!timeString) return "";
+    if (appState.settings.timeFormat === '24h') return timeString;
+
+    let [h, m] = timeString.split(':');
+    h = parseInt(h);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    h = h ? h : 12;
+    return `${h}:${m} ${ampm}`;
+}
 
 function getStepTimings(step) {
     const start = new Date(`${step.date}T${step.time}`);
@@ -118,7 +146,9 @@ function renderCatalogue() {
             const sorted = [...trip.steps].sort((a, b) => getStepTimings(a).start - getStepTimings(b).start);
             const start = getStepTimings(sorted[0]).start;
             const end = getStepTimings(sorted[sorted.length - 1]).end;
-            dateStr = `${dateFormatter.format(start)} - ${dateFormatter.format(end)}`;
+            const startStr = sorted[0].date;
+            const endStr = sorted[sorted.length - 1].date;
+            dateStr = `${formatDate(startStr)} - ${formatDate(endStr)}`;
         }
 
         const html = `
@@ -187,43 +217,49 @@ function renderTrip() {
         }
 
         const iconMap = { bus: 'bus', plane: 'plane', taxi: 'car', minibus: 'truck', preparation: 'clipboard-check' };
-        const bgMap = { 
-            bus: 'bg-blue', plane: 'bg-purple', taxi: 'bg-amber', 
-            minibus: 'bg-emerald', preparation: 'bg-indigo' 
+        const bgMap = {
+            bus: 'bg-blue', plane: 'bg-purple', taxi: 'bg-amber',
+            minibus: 'bg-emerald', preparation: 'bg-indigo'
         };
 
         const html = `
             <div class="timeline-item">
                 ${!isLast ? '<div class="timeline-line"></div>' : ''}
                 <div class="timeline-node">
-                    <i data-lucide="map-pin" class="icon-xs text-muted"></i>
+                    <i data-lucide="map-pin" class="icon-xs text-muted-foreground"></i>
                 </div>
-                <div class="card p-4">
-                    <div class="flex-between mb-3">
-                        <div class="flex-center gap-2">
+                <div class="card p-4 hover:border-muted-foreground/50">
+                    <div class="flex-between items-start mb-4">
+                        <div class="flex items-center gap-3">
                             <div class="mode-icon ${bgMap[step.type]}">
                                 <i data-lucide="${iconMap[step.type]}" class="icon-sm"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-semibold">
+                                <h3 class="text-sm font-semibold tracking-tight">
                                     ${step.type === 'preparation' ? step.from : `${step.from} → ${step.to}`}
                                 </h3>
-                                <p class="mode-label">${step.type}</p>
+                                <p class="mode-label mt-0.5">${step.type}</p>
                             </div>
                         </div>
-                        <div class="flex-center gap-1">
-                            <button onclick="editStep('${step.id}')" class="btn-icon"><i data-lucide="pencil" class="icon-xs"></i></button>
-                            <button onclick="deleteStep('${step.id}')" class="btn-icon"><i data-lucide="trash-2" class="icon-xs"></i></button>
+                        <div class="flex items-center gap-1 -mr-2">
+                            <button onclick="editStep('${step.id}')" class="btn-icon">
+                                <i data-lucide="pencil" class="icon-xs"></i>
+                            </button>
+                            <button onclick="deleteStep('${step.id}')" class="btn-icon hover-red">
+                                <i data-lucide="trash-2" class="icon-xs"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="grid-2 text-sm bg-muted p-2 rounded">
+                    <div class="grid grid-cols-2 gap-4 text-sm bg-muted/60 p-3 rounded-md border border-border/50">
                         <div>
-                            <p class="text-xs text-muted">Arrival</p>
-                            <p class="font-semibold">${timeFormatter.format(timings.start)}</p>
+                            <p class="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Departure</p>
+                            <p class="font-medium">${formatTime(step.time)}</p>
+                            <p class="text-[10px] text-muted-foreground">${formatDate(step.date)}</p>
                         </div>
                         <div>
-                            <p class="text-xs text-muted">Duration</p>
-                            <p class="font-semibold">${formatDuration(parseInt(step.durHours) * 60 + parseInt(step.durMins))}</p>
+                            <p class="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-wider">Duration</p>
+                            <p class="font-medium">${formatDuration(parseInt(step.durHours) * 60 + parseInt(step.durMins))}</p>
+                            <p class="text-[10px] text-muted-foreground">Est. Arrival: ${formatTime(timings.end.toTimeString().slice(0, 5))}</p>
                         </div>
                     </div>
                 </div>
@@ -250,34 +286,107 @@ function updateTripSummary(steps) {
     const totalMins = Math.round((end - start) / 60000);
 
     summaryEl.innerHTML = `
-        <i data-lucide="calendar" class="icon-sm"></i> <span>${dateFormatter.format(start)}</span>
+        <i data-lucide="calendar" class="icon-sm"></i> <span>${formatDate(steps[0].date)}</span>
         <span class="mx-1">•</span>
         <i data-lucide="clock" class="icon-sm"></i> <span>${formatDuration(totalMins)}</span>
     `;
 }
 
 // --- Actions ---
-function createNewTrip() {
-    const name = prompt("Enter new trip name:", "New Trip");
-    if (!name) return;
+const tripModal = document.getElementById('trip-modal');
+const tripForm = document.getElementById('trip-form');
+let tripEditId = null;
 
-    const newTrip = {
-        id: 'trip-' + Date.now(),
-        name: name.trim(),
-        steps: []
-    };
-    appState.trips.push(newTrip);
-    saveData();
-    showTrip(newTrip.id);
+function createNewTrip() {
+    tripEditId = null;
+    tripForm.reset();
+    document.querySelector('#trip-modal .modal-title').textContent = 'Create New Trip';
+    document.querySelector('#trip-modal .modal-description').textContent = 'Give your journey a name to get started.';
+    tripModal.showModal();
 }
 
+function editTripName() {
+    const trip = appState.trips.find(t => t.id === appState.activeTripId);
+    if (!trip) return;
+
+    tripEditId = trip.id;
+    document.getElementById('trip-name-input').value = trip.name;
+    document.querySelector('#trip-modal .modal-title').textContent = 'Rename Trip';
+    document.querySelector('#trip-modal .modal-description').textContent = 'Enter a new name for your journey.';
+    tripModal.showModal();
+}
+
+function handleTripSubmit(event) {
+    event.preventDefault();
+    const name = document.getElementById('trip-name-input').value.trim();
+    if (!name) return;
+
+    if (tripEditId) {
+        // Edit existing
+        const trip = appState.trips.find(t => t.id === tripEditId);
+        if (trip) {
+            trip.name = name;
+            if (appState.activeTripId === trip.id) {
+                document.getElementById('header-title').textContent = name;
+            }
+            saveData();
+            renderCatalogue();
+        }
+    } else {
+        // Create new
+        const newTrip = {
+            id: 'trip-' + Date.now(),
+            name: name,
+            steps: []
+        };
+        appState.trips.push(newTrip);
+        saveData();
+        showTrip(newTrip.id);
+    }
+    closeTripModal();
+}
+
+function closeTripModal() {
+    tripModal.close();
+}
+
+// --- Deletion Dialog ---
+const confirmModal = document.getElementById('confirm-modal');
+let deleteContext = { type: null, id: null };
+
 function deleteTrip(tripId, event) {
-    event.stopPropagation();
-    if (confirm("Delete this trip?")) {
-        appState.trips = appState.trips.filter(t => t.id !== tripId);
+    if (event) event.stopPropagation();
+    deleteContext = { type: 'trip', id: tripId };
+    document.getElementById('confirm-title').textContent = 'Delete Trip?';
+    document.getElementById('confirm-description').textContent = 'This will permanently remove the trip and all its steps.';
+    confirmModal.showModal();
+}
+
+function deleteStep(id) {
+    deleteContext = { type: 'step', id: id };
+    document.getElementById('confirm-title').textContent = 'Remove Step?';
+    document.getElementById('confirm-description').textContent = 'This will permanently remove this step from your itinerary.';
+    confirmModal.showModal();
+}
+
+function closeConfirmModal() {
+    confirmModal.close();
+}
+
+function handleConfirmDelete() {
+    if (deleteContext.type === 'trip') {
+        appState.trips = appState.trips.filter(t => t.id !== deleteContext.id);
         saveData();
         renderCatalogue();
+    } else if (deleteContext.type === 'step') {
+        const trip = appState.trips.find(t => t.id === appState.activeTripId);
+        if (trip) {
+            trip.steps = trip.steps.filter(s => s.id !== deleteContext.id);
+            saveData();
+            renderTrip();
+        }
     }
+    closeConfirmModal();
 }
 
 function saveStep(e) {
@@ -304,14 +413,7 @@ function saveStep(e) {
     renderTrip();
 }
 
-function deleteStep(id) {
-    if (confirm("Remove this step?")) {
-        const trip = appState.trips.find(t => t.id === appState.activeTripId);
-        trip.steps = trip.steps.filter(s => s.id !== id);
-        saveData();
-        renderTrip();
-    }
-}
+// Function removed, handled by handleConfirmDelete
 
 // --- Modal ---
 const modal = document.getElementById('step-modal');
@@ -323,11 +425,29 @@ function openModal(prefill = null) {
     document.getElementById('modal-title').textContent = 'Add Step';
 
     if (!prefill) {
-        const now = new Date();
-        document.getElementById('depDate').value = now.toISOString().split('T')[0];
-        document.getElementById('depTime').value = now.toTimeString().slice(0, 5);
+        let lastStep = null;
+        if (appState.activeTripId) {
+            const trip = appState.trips.find(t => t.id === appState.activeTripId);
+            if (trip && trip.steps.length > 0) {
+                // Get chronologically last step
+                const sorted = [...trip.steps].sort((a, b) => getStepTimings(a).start - getStepTimings(b).start);
+                lastStep = sorted[sorted.length - 1];
+            }
+        }
+
+        if (lastStep) {
+            const timings = getStepTimings(lastStep);
+            document.getElementById('fromLoc').value = lastStep.to;
+            document.getElementById('depDate').value = timings.end.toISOString().split('T')[0];
+            document.getElementById('depTime').value = timings.end.toTimeString().slice(0, 5);
+        } else {
+            const now = new Date();
+            document.getElementById('depDate').value = now.toISOString().split('T')[0];
+            document.getElementById('depTime').value = now.toTimeString().slice(0, 5);
+        }
     } else {
         document.getElementById('fromLoc').value = prefill.from || '';
+        document.getElementById('toLoc').value = prefill.to || '';
         document.getElementById('depDate').value = prefill.date || '';
         document.getElementById('depTime').value = prefill.time || '';
     }
@@ -341,18 +461,19 @@ function closeModal() { modal.close(); }
 function toggleToField() {
     const type = document.querySelector('input[name="type"]:checked').value;
     const toFieldContainer = document.getElementById('to-field-container');
-    const middleArrow = document.getElementById('middle-arrow');
+    const middleArrow = document.getElementById('center-icon-loc');
+    const middleTimeIcon = document.getElementById('center-icon-time');
     const labelFrom = document.getElementById('label-from');
 
     if (type === 'preparation') {
         toFieldContainer.classList.add('hidden');
         document.getElementById('toLoc').required = false;
-        middleArrow.classList.add('hidden');
+        if (middleArrow) middleArrow.classList.add('hidden');
         labelFrom.textContent = 'Task / Prep Name';
     } else {
         toFieldContainer.classList.remove('hidden');
         document.getElementById('toLoc').required = true;
-        middleArrow.classList.remove('hidden');
+        if (middleArrow) middleArrow.classList.remove('hidden');
         labelFrom.textContent = 'From';
     }
 }
@@ -386,6 +507,32 @@ function insertAfter(index) {
     });
 }
 
+// --- Settings ---
+const settingsModal = document.getElementById('settings-modal');
+
+function openSettings() {
+    document.getElementById('setting-date-format').value = appState.settings.dateFormat;
+    document.getElementById('setting-time-format').value = appState.settings.timeFormat;
+    settingsModal.showModal();
+}
+
+function closeSettings() {
+    settingsModal.close();
+}
+
+function saveSettings() {
+    appState.settings.dateFormat = document.getElementById('setting-date-format').value;
+    appState.settings.timeFormat = document.getElementById('setting-time-format').value;
+    saveData();
+    closeSettings();
+    if (appState.activeTripId) renderTrip();
+    else renderCatalogue();
+}
+
+function applySettingsToUI() {
+    // This could handle theme-specific logic if needed
+}
+
 // --- Service Worker & PWA ---
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
@@ -400,11 +547,33 @@ function setupEventListeners() {
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
     });
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) closeSettings();
+    });
+    tripModal.addEventListener('click', (e) => {
+        if (e.target === tripModal) closeTripModal();
+    });
+    confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) closeConfirmModal();
+    });
 }
 
-// Data Import/Export
+// Data Import/Export (Fixed Format: dd/mm/yyyy 24h)
 function exportData() {
-    const dataStr = JSON.stringify(appState.trips, null, 2);
+    // Map trips to requested export format
+    const exportTrips = appState.trips.map(trip => ({
+        ...trip,
+        steps: trip.steps.map(step => {
+            const [y, m, d] = step.date.split('-');
+            return {
+                ...step,
+                date: `${d}/${m}/${y}`, // dd/mm/yyyy
+                time: step.time // 24h (already stored as HH:mm)
+            };
+        })
+    }));
+
+    const dataStr = JSON.stringify(exportTrips, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -422,7 +591,17 @@ function importData(event) {
         try {
             const imported = JSON.parse(e.target.result);
             if (Array.isArray(imported)) {
-                appState.trips = imported;
+                // Map back to internal format (yyyy-mm-dd)
+                appState.trips = imported.map(trip => ({
+                    ...trip,
+                    steps: (trip.steps || []).map(step => {
+                        if (step.date.includes('/')) {
+                            const [d, m, y] = step.date.split('/');
+                            return { ...step, date: `${y}-${m}-${d}` };
+                        }
+                        return step;
+                    })
+                }));
                 saveData();
                 showCatalogue();
             }

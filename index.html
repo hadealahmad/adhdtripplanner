@@ -14,61 +14,22 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Tailwind CSS (for utility classes) -->
+    <!-- Tailwind CSS (for quick utility bridiging) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Custom Style -->
+    <!-- Custom Style (Shadcn System) -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Helper Styles to bridge Tailwind and Custom CSS -->
     <style>
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .flex-center {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .icon-xs {
-            width: 0.875rem;
-            height: 0.875rem;
-        }
-
-        .icon-sm {
-            width: 1.25rem;
-            height: 1.25rem;
-        }
-
-        .btn-icon {
-            p: 0.5rem;
-            color: var(--muted-foreground);
-            border-radius: 0.375rem;
-            transition: background 0.2s;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-        }
-
-        .btn-icon:hover {
-            color: var(--foreground);
-            background-color: var(--muted);
-        }
-
-        .hover-red:hover {
-            color: var(--destructive);
-            background-color: rgba(239, 68, 68, 0.1);
+        /* Bridge styles for Lucide inside custom components */
+        [data-lucide] {
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .mode-icon {
-            padding: 0.375rem;
-            border-radius: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -101,23 +62,23 @@
 
         .mode-label {
             font-size: 10px;
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--muted-foreground);
+            color: hsl(var(--muted-foreground));
             margin: 0;
         }
 
         .layover-badge {
             margin: 0.5rem 0 0.5rem 1.125rem;
-            padding: 0.125rem 0.5rem;
-            background: var(--muted);
-            border: 1px solid var(--border);
+            padding: 0.125rem 0.625rem;
+            background-color: hsl(var(--secondary));
+            border: 1px solid hsl(var(--border));
             border-radius: 9999px;
             font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            color: var(--muted-foreground);
+            color: hsl(var(--muted-foreground));
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
@@ -125,14 +86,14 @@
 
         .overlap-badge {
             margin: 0.5rem 0 0.5rem 1.125rem;
-            padding: 0.125rem 0.5rem;
-            background: rgba(239, 68, 68, 0.1);
+            padding: 0.125rem 0.625rem;
+            background-color: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.2);
             border-radius: 9999px;
             font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            color: var(--destructive);
+            color: hsl(var(--destructive));
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
@@ -151,13 +112,13 @@
         .btn-insert {
             width: 1.75rem;
             height: 1.75rem;
-            background: white;
-            border: 1px solid var(--border);
+            background-color: hsl(var(--background));
+            border: 1px solid hsl(var(--border));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--muted-foreground);
+            color: hsl(var(--muted-foreground));
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
             cursor: pointer;
             transition: all 0.2s;
@@ -165,9 +126,45 @@
         }
 
         .btn-insert:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+            border-color: hsl(var(--primary));
+            color: hsl(var(--primary));
             transform: scale(1.1);
+        }
+
+        /* Shadcn Button Icon style */
+        .btn-icon {
+            padding: 0.5rem;
+            color: hsl(var(--muted-foreground));
+            border-radius: 0.375rem;
+            transition: background 0.2s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-icon:hover {
+            color: hsl(var(--foreground));
+            background-color: hsl(var(--accent));
+        }
+
+        .hover-red:hover {
+            color: hsl(var(--destructive));
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Ensure primary button icons are white/properly contrasted */
+        .btn-primary [data-lucide],
+        .fab [data-lucide] {
+            color: hsl(var(--primary-foreground)) !important;
+        }
+
+        /* Tactile feedback for mobile */
+        .btn:active,
+        .btn-icon:active,
+        .fab:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -193,6 +190,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-1">
+                <button onclick="openSettings()" class="btn-icon" title="Settings">
+                    <i data-lucide="settings" class="icon-sm"></i>
+                </button>
+                <div class="h-6 w-[1px] bg-border mx-1"></div>
                 <button onclick="document.getElementById('import-file').click()" class="btn-icon" title="Import">
                     <i data-lucide="upload" class="icon-sm"></i>
                 </button>
@@ -209,13 +210,13 @@
             <div id="catalogue-view" class="flex flex-col gap-3">
                 <div id="trip-list" class="flex flex-col gap-3"></div>
                 <div id="empty-catalogue"
-                    class="hidden flex flex-col items-center justify-center text-center py-12 px-4">
+                    class="hidden flex flex-col items-center justify-center text-center py-12 px-4 mt-8">
                     <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
                         <i data-lucide="compass" class="text-muted-foreground icon-sm"></i>
                     </div>
-                    <h3 class="text-lg font-medium mb-1">No trips yet</h3>
-                    <p class="text-sm text-muted-foreground mb-4">Create your first trip to start planning.</p>
-                    <button onclick="createNewTrip()" class="btn btn-primary">
+                    <h3 class="text-lg font-semibold mb-1">No trips yet</h3>
+                    <p class="text-sm text-muted-foreground mb-6">Create your first trip to start planning.</p>
+                    <button onclick="createNewTrip()" class="btn btn-primary shadow-sm transition-all">
                         <i data-lucide="plus" class="icon-xs mr-2"></i> Create Trip
                     </button>
                 </div>
@@ -224,12 +225,14 @@
             <!-- Detail View -->
             <div id="detail-view" class="hidden">
                 <div id="timeline"></div>
-                <div id="empty-state" class="hidden flex flex-col items-center justify-center text-center py-12 px-4">
-                    <div class="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
+                <div id="empty-state"
+                    class="hidden flex flex-col items-center justify-center text-center py-12 px-4 mt-8">
+                    <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                         <i data-lucide="map" class="text-muted-foreground icon-sm"></i>
                     </div>
-                    <h3 class="text-lg font-medium mb-1">Itinerary is empty</h3>
-                    <button onclick="openModal()" class="btn btn-primary mt-4">
+                    <h3 class="text-lg font-semibold mb-1">Itinerary is empty</h3>
+                    <p class="text-sm text-muted-foreground mb-6">Start building your journey step by step.</p>
+                    <button onclick="openModal()" class="btn btn-primary shadow-sm transition-all">
                         <i data-lucide="plus" class="icon-xs mr-2"></i> Add First Step
                     </button>
                 </div>
@@ -245,25 +248,26 @@
         </button>
     </div>
 
-    <!-- Modal -->
+    <!-- Shadcn Styled Modal -->
     <dialog id="step-modal">
+        <button onclick="closeModal()" class="modal-close" aria-label="Close">
+            <i data-lucide="x" class="icon-sm"></i>
+        </button>
         <div class="modal-header">
-            <h2 id="modal-title">Add Step</h2>
-            <button onclick="closeModal()" class="btn-icon">
-                <i data-lucide="x" class="icon-sm"></i>
-            </button>
+            <h2 id="modal-title" class="modal-title">Add Step</h2>
+            <p class="modal-description">Enter the details for this leg of your trip.</p>
         </div>
         <form id="step-form" class="modal-body" onsubmit="saveStep(event)">
             <input type="hidden" id="step-id">
 
             <div class="form-group">
                 <label>Transport Mode</label>
-                <div class="grid grid-cols-5 gap-2 mt-2">
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-1">
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="preparation" class="sr-only peer"
                             onchange="toggleToField()">
                         <div
-                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            class="flex flex-col items-center p-2 border border-input rounded-md transition-all peer-checked:bg-muted peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:bg-accent/50">
                             <i data-lucide="clipboard-check" class="icon-sm mb-1"></i>
                             <span class="text-[10px] font-medium">Prep</span>
                         </div>
@@ -272,7 +276,7 @@
                         <input type="radio" name="type" value="bus" class="sr-only peer" checked
                             onchange="toggleToField()">
                         <div
-                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            class="flex flex-col items-center p-2 border border-input rounded-md transition-all peer-checked:bg-muted peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:bg-accent/50">
                             <i data-lucide="bus" class="icon-sm mb-1"></i>
                             <span class="text-[10px] font-medium">Bus</span>
                         </div>
@@ -280,7 +284,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="plane" class="sr-only peer" onchange="toggleToField()">
                         <div
-                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            class="flex flex-col items-center p-2 border border-input rounded-md transition-all peer-checked:bg-muted peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:bg-accent/50">
                             <i data-lucide="plane" class="icon-sm mb-1"></i>
                             <span class="text-[10px] font-medium">Flight</span>
                         </div>
@@ -288,7 +292,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="taxi" class="sr-only peer" onchange="toggleToField()">
                         <div
-                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            class="flex flex-col items-center p-2 border border-input rounded-md transition-all peer-checked:bg-muted peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:bg-accent/50">
                             <i data-lucide="car" class="icon-sm mb-1"></i>
                             <span class="text-[10px] font-medium">Taxi</span>
                         </div>
@@ -296,7 +300,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="type" value="minibus" class="sr-only peer" onchange="toggleToField()">
                         <div
-                            class="flex flex-col items-center p-2 border rounded-lg peer-checked:bg-muted peer-checked:border-primary">
+                            class="flex flex-col items-center p-2 border border-input rounded-md transition-all peer-checked:bg-muted peer-checked:border-primary peer-checked:ring-1 peer-checked:ring-primary hover:bg-accent/50">
                             <i data-lucide="truck" class="icon-sm mb-1"></i>
                             <span class="text-[10px] font-medium">Van</span>
                         </div>
@@ -304,50 +308,130 @@
                 </div>
             </div>
 
-            <div class="grid-2 relative">
+            <div class="modal-grid grid-2 relative mt-4">
                 <div class="form-group">
                     <label id="label-from">From</label>
-                    <input type="text" id="fromLoc" required placeholder="Where from?">
+                    <input type="text" id="fromLoc" required placeholder="Where from?"
+                        class="placeholder:text-muted-foreground/60 px-3">
                 </div>
                 <div id="to-field-container" class="form-group">
                     <label>To</label>
-                    <input type="text" id="toLoc" required placeholder="Destination">
+                    <input type="text" id="toLoc" required placeholder="Destination"
+                        class="placeholder:text-muted-foreground/60 px-3">
                 </div>
-                <div id="middle-arrow" class="absolute left-1/2 top-7 -translate-x-1/2 -translate-y-1/2 bg-white px-1">
-                    <i data-lucide="arrow-right" class="icon-xs text-muted"></i>
+                <!-- Middle arrow centered between inputs -->
+                <div id="center-icon-loc"
+                    class="hidden sm:flex absolute left-1/2 top-[2.65rem] -translate-x-1/2 -translate-y-1/2 bg-background p-1 z-10 items-center justify-center rounded-full border border-border shadow-sm">
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-muted-foreground/70"></i>
                 </div>
             </div>
 
-            <div class="grid-2">
+            <div class="modal-grid grid-2 relative mt-4">
                 <div class="form-group">
                     <label>Departure Date</label>
-                    <input type="date" id="depDate" required>
+                    <input type="date" id="depDate" required class="px-3">
                 </div>
                 <div class="form-group">
                     <label>Time</label>
-                    <input type="time" id="depTime" required>
+                    <input type="time" id="depTime" required class="px-3">
+                </div>
+                <!-- Middle separator for date/time -->
+                <div id="center-icon-time"
+                    class="hidden sm:flex absolute left-1/2 top-[2.65rem] -translate-x-1/2 -translate-y-1/2 bg-background p-1 z-10 items-center justify-center rounded-full border border-border shadow-sm">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-muted-foreground/70"></i>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Trip Duration</label>
-                <div class="grid-2">
+                <div class="modal-grid grid-2">
                     <div class="relative">
-                        <input type="number" id="durHours" min="0" required value="1" class="w-full">
-                        <span class="absolute right-2 top-2 text-xs text-muted">hrs</span>
+                        <input type="number" id="durHours" min="0" required value="1" class="w-full pr-10 px-3">
+                        <span class="absolute right-3 top-2.5 text-xs text-muted-foreground">hrs</span>
                     </div>
                     <div class="relative">
-                        <input type="number" id="durMins" min="0" max="59" required value="0" class="w-full">
-                        <span class="absolute right-2 top-2 text-xs text-muted">min</span>
+                        <input type="number" id="durMins" min="0" max="59" required value="0" class="w-full pr-10 px-3">
+                        <span class="absolute right-3 top-2.5 text-xs text-muted-foreground">min</span>
                     </div>
                 </div>
             </div>
 
-            <div class="grid-2 mt-4">
+            <div class="modal-grid grid-2 mt-6">
                 <button type="button" onclick="closeModal()" class="btn btn-outline">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save Step</button>
             </div>
         </form>
+    </dialog>
+
+    <!-- Settings Modal -->
+    <dialog id="settings-modal">
+        <button onclick="closeSettings()" class="modal-close" aria-label="Close">
+            <i data-lucide="x" class="icon-sm"></i>
+        </button>
+        <div class="modal-header">
+            <h2 class="modal-title">Settings</h2>
+            <p class="modal-description">Customize your display preferences.</p>
+        </div>
+        <div class="modal-body space-y-4">
+            <div class="form-group">
+                <label>Date Format</label>
+                <select id="setting-date-format"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                    <option value="DD/MM/YYYY">DD/MM/YYYY (UK/Common)</option>
+                    <option value="MM/DD/YYYY">MM/DD/YYYY (US)</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD (ISO)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Time Format</label>
+                <select id="setting-time-format"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                    <option value="24h">24-hour (18:30)</option>
+                    <option value="12h">12-hour (6:30 PM)</option>
+                </select>
+            </div>
+            <div class="pt-2">
+                <button onclick="saveSettings()" class="btn btn-primary w-full">Save Preferences</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- New Trip Modal -->
+    <dialog id="trip-modal">
+        <button onclick="closeTripModal()" class="modal-close" aria-label="Close">
+            <i data-lucide="x" class="icon-sm"></i>
+        </button>
+        <div class="modal-header">
+            <h2 class="modal-title">Create New Trip</h2>
+            <p class="modal-description">Give your journey a name to get started.</p>
+        </div>
+        <form id="trip-form" class="modal-body" onsubmit="handleTripSubmit(event)">
+            <div class="form-group">
+                <label>Trip Name</label>
+                <input type="text" id="trip-name-input" required placeholder="e.g., Summer in Paris"
+                    class="placeholder:text-muted-foreground/60 px-3">
+            </div>
+            <div class="modal-grid grid-2 mt-4">
+                <button type="button" onclick="closeTripModal()" class="btn btn-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Trip</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Confirmation Modal -->
+    <dialog id="confirm-modal">
+        <div class="modal-header">
+            <h2 id="confirm-title" class="modal-title">Are you absolutely sure?</h2>
+            <p id="confirm-description" class="modal-description">This action cannot be undone. This will permanently
+                delete the item.</p>
+        </div>
+        <div class="modal-body">
+            <div class="flex justify-end gap-3 mt-4">
+                <button onclick="closeConfirmModal()" class="btn btn-outline">Cancel</button>
+                <button onclick="handleConfirmDelete()"
+                    class="btn bg-destructive text-destructive-foreground hover:opacity-90">Delete</button>
+            </div>
+        </div>
     </dialog>
 
     <!-- Application Script -->

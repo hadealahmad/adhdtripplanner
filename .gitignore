@@ -1,34 +1,30 @@
-# dependencies (bun install)
-node_modules
+# Dependency directories
+node_modules/
 
-# output
-out
-dist
-*.tgz
+# OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vsc/
+.vscode/
 
-# code coverage
-coverage
-*.lcov
+# Build artifacts
+dist/
+out/
+build/
+*.bak
 
-# logs
-logs
-_.log
-report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
-
-# dotenv environment variable files
+# Environment / Data
 .env
-.env.development.local
-.env.test.local
-.env.production.local
 .env.local
+*.json.bak
+trips-backup-*.json
 
-# caches
-.eslintcache
+# Logs & Caches
+*.log
 .cache
+.eslintcache
 *.tsbuildinfo
 
-# IntelliJ based IDEs
-.idea
-
-# Finder (MacOS) folder config
-.DS_Store
+# Note: bun.lockb is normally committed.
+# Note: style.css is the generated output, keep it if you deploy without a build step.

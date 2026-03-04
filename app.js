@@ -156,7 +156,7 @@ function renderCatalogue() {
         }
 
         const html = `
-            <div onclick="showTrip('${trip.id}')" class="card group">
+            <div onclick="showTrip('${trip.id}')" class="trip-card group">
                 <div class="flex-between">
                     <div>
                         <h3 class="card-title">${trip.name}</h3>
@@ -568,6 +568,65 @@ function setupEventListeners() {
     confirmModal.addEventListener('click', (e) => {
         if (e.target === confirmModal) closeConfirmModal();
     });
+
+    // Drawer Touch Dragging
+    const drawer = document.getElementById('trip-drawer');
+    const header = document.getElementById('drawer-header');
+    const handle = document.querySelector('.drawer-handle');
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+
+    const onTouchStart = (e) => {
+        const content = document.querySelector('.drawer-content');
+        // Only allow dragging if we are at the top of the scrollable content
+        // OR if we are dragging the handle/header specifically
+        const isHeaderOrHandle = e.target === handle || header.contains(e.target);
+        if (content.scrollTop > 0 && !isHeaderOrHandle) return;
+
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        drawer.style.transition = 'none';
+    };
+
+    const onTouchMove = (e) => {
+        if (!isDragging) return;
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+
+        if (deltaY > 0) {
+            // If dragging down, prevent default bubbling (like pull-to-refresh)
+            if (e.cancelable) e.preventDefault();
+            drawer.style.transform = `translate(-50%, ${deltaY}px)`;
+        } else {
+            // If dragging up, don't move the drawer (it's already at max height)
+            drawer.style.transform = '';
+            if (deltaY < -10) isDragging = false; // Stop dragging if user pulls up
+        }
+    };
+
+    const onTouchEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        drawer.style.transition = '';
+
+        const deltaY = currentY - startY;
+        if (deltaY > 120) {
+            showCatalogue();
+            // Reset transform after transition completes
+            setTimeout(() => {
+                drawer.style.transform = '';
+            }, 400);
+        } else {
+            drawer.style.transform = '';
+        }
+        startY = 0;
+        currentY = 0;
+    };
+
+    drawer.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchend', onTouchEnd);
 }
 
 // Data Import/Export (Fixed Format: dd/mm/yyyy 24h)

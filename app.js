@@ -1,6 +1,6 @@
 // --- Constants & Config ---
 const STORAGE_KEY = 'adhd_trip_planner_data';
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.4';
 
 // --- State Management ---
 let appState = {
